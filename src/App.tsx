@@ -7,6 +7,15 @@ import Home from "./_root/pages/Home"
 import { Toaster } from "./components/ui/toaster"
 
 import "./globals.css"
+import {
+  AllUsers,
+  CreatePost,
+  Explore,
+  PostDetails,
+  Profile,
+  Saved,
+  UpdateProfile,
+} from "./_root/pages"
 
 const App = () => {
   return (
@@ -17,9 +26,16 @@ const App = () => {
           <Route path="/sign-in" element={<SigninForm />} />
           <Route path="/sign-up" element={<SignupForm />} />
         </Route>
+        {/* private routes */}
         <Route element={<RootLayout />}>
-          {/* private routes */}
           <Route index element={<Home />} />
+          <Route path="/explore" element={<Explore />} />
+          <Route path="/saved" element={<Saved />} />
+          <Route path="/all-users" element={<AllUsers />} />
+          <Route path="/create-post" element={<CreatePost />} />
+          <Route path="/posts/:id" element={<PostDetails />} />
+          <Route path="/profile/:id/*" element={<Profile />} />
+          <Route path="/update-profile/:id/" element={<UpdateProfile />} />
         </Route>
       </Routes>
       <Toaster />
