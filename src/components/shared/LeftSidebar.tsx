@@ -5,7 +5,6 @@ import { useEffect } from "react"
 import { useUserContext } from "@/context/AuthContext"
 import { sidebarLinks } from "@/constants"
 import { INavLink } from "@/types"
-import path from "path"
 
 const LeftSidebar = () => {
   const { pathname } = useLocation()

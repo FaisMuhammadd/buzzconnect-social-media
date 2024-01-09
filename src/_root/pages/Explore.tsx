@@ -1,20 +1,45 @@
-import GridPostList from "@/components/shared/GridPostList"
-import Loader from "@/components/shared/Loader"
-import SearchResults from "@/components/shared/SearchResults"
 import { Input } from "@/components/ui/input"
-import useDebounce from "@/hooks/useDebounce"
 import {
   useGetPosts,
   useSearchPosts,
 } from "@/lib/react-query/queriesAndMutations"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { useInView } from "react-intersection-observer"
+import useDebounce from "@/hooks/useDebounce"
+import Loader from "@/components/shared/Loader"
+import GridPostList from "@/components/shared/GridPostList"
+
+export type SearchResultProps = {
+  isSearchFetching: boolean
+  searchedPosts: any
+}
+
+const SearchResults = ({
+  isSearchFetching,
+  searchedPosts,
+}: SearchResultProps) => {
+  if (isSearchFetching) {
+    return <Loader />
+  } else if (searchedPosts && searchedPosts.documents.length > 0) {
+    return <GridPostList posts={searchedPosts.documents} />
+  } else {
+    return (
+      <p className="text-light-4 mt-10 text-center w-full">No results found</p>
+    )
+  }
+}
 
 const Explore = () => {
+  const { inView } = useInView()
   const [searchValue, setSearchValue] = useState("")
-  const debounceValue = useDebounce(searchValue, 500)
-  const { data: posts, fetchNextPage, hasNextPage } = useGetPosts()
+  const { data: posts, fetchNextPage } = useGetPosts()
+  const debouncedSearch = useDebounce(searchValue, 500)
   const { data: searchedPosts, isFetching: isSearchFetching } =
-    useSearchPosts(searchValue)
+    useSearchPosts(debouncedSearch)
+
+  useEffect(() => {
+    if (inView && !searchValue) fetchNextPage()
+  }, [inView, searchValue])
 
   if (!posts) {
     return (
@@ -27,7 +52,7 @@ const Explore = () => {
   const shouldShowSearchResults = searchValue !== ""
   const shouldShowPosts =
     !shouldShowSearchResults &&
-    posts?.pages.every((item) => item.documents.length === 0)
+    posts.pages.every((item) => item.documents.length === 0)
 
   return (
     <div className="explore-container">
@@ -65,7 +90,10 @@ const Explore = () => {
 
       <div className="flex flex-wrap gap-9 w-full max-w-5xl">
         {shouldShowSearchResults ? (
-          <SearchResults />
+          <SearchResults
+            isSearchFetching={isSearchFetching}
+            searchedPosts={searchedPosts}
+          />
         ) : shouldShowPosts ? (
           <p className="text-light-4 mt-10 text-center w-full">End of posts</p>
         ) : (
