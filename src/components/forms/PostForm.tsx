@@ -19,6 +19,7 @@ import { Models } from "appwrite"
 import { useUserContext } from "@/context/AuthContext"
 import { useCreatePost } from "@/lib/react-query/queriesAndMutations"
 import { useToast } from "../ui/use-toast"
+import { FadeLoader } from "react-spinners"
 
 type PostFormProps = {
   post?: Models.Document
