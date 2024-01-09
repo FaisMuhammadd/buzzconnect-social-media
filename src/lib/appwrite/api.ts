@@ -1,4 +1,4 @@
-import { INewPost, INewUser } from "@/types"
+import { INewPost, INewUser, IUpdatePost } from "@/types"
 import { ID, Query } from "appwrite"
 import { account, appwriteConfig, avatars, databases, storage } from "./config"
 
@@ -233,6 +233,82 @@ export async function getPostById(postId: string) {
       postId
     )
     return post
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export async function updatePost(post: IUpdatePost) {
+  const hasFileToUpdate = post.file.length > 0
+
+  try {
+    let image = {
+      imageUrl: post.imageUrl,
+      imageId: post.imageId,
+    }
+
+    if (hasFileToUpdate) {
+      // upload nwe file to appwrite storage
+      const uploadedFile = await uploadFile(post.file[0])
+      if (!uploadedFile) throw Error
+
+      // get new file url
+      const fileUrl = getFilePreview(uploadedFile.$id)
+      if (!fileUrl) {
+        await deleteFile(uploadedFile.$id)
+        throw Error
+      }
+
+      image = { ...image, imageUrl: fileUrl, imageId: uploadedFile.$id }
+    }
+
+    // convert tags into array
+    const tags = post.tags?.replace(/ /g, "").split(",") || []
+
+    // update post
+    const updatePost = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      post.postId,
+      {
+        caption: post.caption,
+        imageUrl: image.imageUrl,
+        imageId: image.imageId,
+        location: post.location,
+        tags: tags,
+      }
+    )
+
+    // failed to update
+    if (!updatePost) {
+      // delete new file that has been recently uploaded
+      if (hasFileToUpdate) {
+        await deleteFile(image.imageId)
+      }
+      // if no new file uploaded, just throw error
+      throw Error
+    }
+
+    // safely delete old file after successful update
+    if (hasFileToUpdate) {
+      await deleteFile(post.imageId)
+    }
+    return updatePost
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+export async function deletePost(postId: string, imageId: string) {
+  if (!postId || !imageId) throw Error
+
+  try {
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postCollectionId,
+      postId
+    )
+    return { status: "ok" }
   } catch (error) {
     console.log(error)
   }
