@@ -1,5 +1,5 @@
 import {
-  useDeleteSavePost,
+  useDeleteSavedPost,
   useGetCurrentUser,
   useLikePost,
   useSavePost,
@@ -23,7 +23,7 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
   const { mutate: likePost } = useLikePost()
   const { mutate: savePost, isPending: isSavingPost } = useSavePost()
   const { mutate: deleteSavePost, isPending: isDeletingSaved } =
-    useDeleteSavePost()
+    useDeleteSavedPost()
   const { data: currentUser } = useGetCurrentUser()
 
   const savedPostRecord = currentUser?.save.find(

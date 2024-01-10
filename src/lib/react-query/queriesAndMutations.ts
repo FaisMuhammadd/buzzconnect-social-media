@@ -1,4 +1,4 @@
-import { INewPost, INewUser, IUpdatePost } from "@/types"
+import { INewPost, INewUser, IUpdatePost, IUpdateUser } from "@/types"
 import {
   useInfiniteQuery,
   useMutation,
@@ -8,19 +8,22 @@ import {
 import {
   createUserAccount,
   signInAccount,
-  signOutAccount,
-  createPost,
-  getRecentPosts,
-  likePost,
-  savePost,
-  deleteSavePost,
   getCurrentUser,
+  signOutAccount,
+  getUsers,
+  createPost,
   getPostById,
   updatePost,
   deletePost,
+  likePost,
+  getUserById,
+  updateUser,
+  getRecentPosts,
   getInfinitePosts,
   searchPosts,
-} from "../appwrite/api"
+  savePost,
+  deleteSavedPost,
+} from "@/lib/appwrite/api"
 import { QUERY_KEYS } from "./queryKeys"
 
 export const useCreateUserAccount = () => {
@@ -109,11 +112,11 @@ export const useSavePost = () => {
   })
 }
 
-export const useDeleteSavePost = () => {
+export const useDeleteSavedPost = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (saveRecordId: string) => deleteSavePost(saveRecordId),
+    mutationFn: (saveRecordId: string) => deleteSavedPost(saveRecordId),
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: [QUERY_KEYS.GET_RECENT_POSTS],
@@ -193,5 +196,43 @@ export const useSearchPosts = (searchTerm: string) => {
     queryKey: [QUERY_KEYS.SEARCH_POSTS, searchTerm],
     queryFn: () => searchPosts(searchTerm),
     enabled: !!searchTerm,
+  })
+}
+
+export const useGetUserById = (userId: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_USER_BY_ID, userId],
+    queryFn: () => getUserById(userId),
+    enabled: !!userId,
+  })
+}
+
+export const useUpdateUser = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (user: IUpdateUser) => updateUser(user),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_CURRENT_USER],
+      })
+      queryClient.invalidateQueries({
+        queryKey: [QUERY_KEYS.GET_USER_BY_ID, data?.$id],
+      })
+    },
+  })
+}
+
+export const useGetUsers = (limit?: number) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_USERS],
+    queryFn: () => getUsers(limit),
+  })
+}
+
+export const useGetUserPosts = (userId?: string) => {
+  return useQuery({
+    queryKey: [QUERY_KEYS.GET_POST_BY_ID, userId],
+    queryFn: () => getPostById(userId),
+    enabled: !!userId,
   })
 }
