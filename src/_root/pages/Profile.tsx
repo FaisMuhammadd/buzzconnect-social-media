@@ -104,7 +104,7 @@ const Profile = () => {
           <Link
             to={`/profile/${id}`}
             className={`profile-tab rounded-lg ${
-              pathname === `/profile/${id}` && "!bg-dark-3"
+              pathname === `/profile/${id}` && `bg-dark-4`
             }`}
           >
             <img
